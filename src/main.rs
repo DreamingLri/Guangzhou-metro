@@ -1,6 +1,6 @@
 use std::{fs::File, io::BufReader};
 
-use guangzhou_metro::Map;
+use guangzhou_metro::{Link, Map};
 use serde_json::Value;
 
 fn main() {
@@ -14,8 +14,8 @@ fn main() {
 
     let mut map = Map::new();
 
-    for (line, data) in obj {
-        let Value::Array(arr) = data else {
+    for (line, arr) in obj {
+        let Value::Array(arr) = arr else {
             panic!("not an array");
         };
         if arr.len() % 2 != 1 {
@@ -29,9 +29,11 @@ fn main() {
                 panic!("type mismatch");
             };
 
-            let cost = cost.as_f64().expect("not a f64");
-            map.add_edge(&line, fst, snd, cost);
-            map.add_edge(&line, snd, fst, cost)
+            let link = Link {
+                line: line.clone(),
+                cost: cost.as_f64().expect("not a f64"),
+            };
+            map.add_link(fst, snd, link);
         }
     }
 
