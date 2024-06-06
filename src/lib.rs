@@ -1,4 +1,4 @@
-pub mod app;
+pub mod applications;
 pub mod bootstrap;
 
 use std::{

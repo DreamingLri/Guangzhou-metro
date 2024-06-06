@@ -1,13 +1,12 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, App, HttpServer};
+
+use crate::applications;
 
 pub async fn start() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(hello))
+    HttpServer::new(|| 
+        App::new().service(applications::hello::hello))
         .bind(("127.0.0.1", 8080))?
         .run()
         .await
 }
 
-#[get("/")]
-pub async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello World!")
-}
