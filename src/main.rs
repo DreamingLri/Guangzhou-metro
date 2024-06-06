@@ -3,6 +3,14 @@ use std::{fs::File, io::BufReader};
 use guangzhou_metro::{Link, Map};
 use serde_json::Value;
 
+use axum::{
+    routing::{get, post},
+    Router,
+};
+
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+
 fn main() {
     let file = File::open("map.json").expect("failed to open map.json");
     let rdr = BufReader::new(file);
@@ -39,3 +47,20 @@ fn main() {
 
     println!("{map:#?}");
 }
+
+// #[tokio::main]
+// async fn main() {
+//
+//     let app = Router::new()
+//         .route("/", get(root));
+//
+//     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+//         .await
+//         .unwrap();
+//
+//     axum::serve(listener, app).await.unwrap();
+// }
+//
+// async fn root() -> &'static str{
+//     "Hello, World!"
+// }
