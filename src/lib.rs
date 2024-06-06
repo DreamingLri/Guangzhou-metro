@@ -154,6 +154,20 @@ impl Map {
     }
 
     pub fn find_path<'a>(&'a self, start: &'a str, dest: &str) -> Option<Path<'a>> {
+        fn new_segment<'a>(
+            stations: &mut Vec<&'a str>,
+            last_link: &'a Link,
+            segment_len: f64,
+        ) -> PathSegment<'a> {
+            let last_station = *stations.last().unwrap();
+            PathSegment {
+                line: &last_link.line,
+                direction: &last_link.direction,
+                stations: mem::replace(stations, vec![last_station]),
+                len: segment_len,
+            }
+        }
+
         let links = self.find_path_raw(start, dest)?;
 
         let mut segments = vec![];
@@ -163,16 +177,9 @@ impl Map {
         let mut len = 0.0;
 
         for i in 0..links.len() {
-            let link = &links[i];
+            let link = links[i];
             if i != 0 && link.line != links[i - 1].line {
-                let last_station = *stations.last().unwrap();
-                let segment = PathSegment {
-                    line: &links[i - 1].line,
-                    direction: &links[i - 1].direction,
-                    stations: mem::replace(&mut stations, vec![last_station]),
-                    len: segment_len,
-                };
-                segments.push(segment);
+                segments.push(new_segment(&mut stations, &links[i - 1], segment_len));
                 segment_len = 0.0;
             }
 
@@ -180,6 +187,12 @@ impl Map {
             segment_len += link.cost;
             len += link.cost;
         }
+
+        segments.push(new_segment(
+            &mut stations,
+            links.last().unwrap(),
+            segment_len,
+        ));
         Some(Path { segments, len })
     }
 }
