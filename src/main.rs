@@ -1,5 +1,6 @@
 use std::{fs::File, io::BufReader};
 
+use guangzhou_metro::bootstrap;
 use guangzhou_metro::{Link, Map};
 use serde_json::Value;
 
@@ -58,3 +59,8 @@ fn main() {
     // println!("{map:#?}");
     println!("{:#?}", map.find_path("顺德学院站", "增城广场"));
 }
+
+// #[actix_web::main]
+// async fn main() -> std::io::Result<()> {
+//     bootstrap::app::start().await
+// }
