@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 pub mod bootstrap;
+pub mod app;
 
 #[derive(Clone, Debug)]
 pub struct Link {
