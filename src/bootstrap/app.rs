@@ -4,7 +4,10 @@ use crate::applications;
 
 pub async fn start() -> std::io::Result<()> {
     HttpServer::new(|| 
-        App::new().service(applications::hello::hello))
+        App::new()
+        .service(applications::hello::hello)
+        .service(applications::hello::echo)
+    )
         .bind(("127.0.0.1", 8080))?
         .run()
         .await
