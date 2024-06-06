@@ -1,5 +1,6 @@
 use std::{fs::File, io::BufReader};
 
+use guangzhou_metro::bootstrap;
 use guangzhou_metro::{Link, Map};
 use serde_json::Value;
 
@@ -39,3 +40,8 @@ fn main() {
 
     println!("{map:#?}");
 }
+
+// #[actix_web::main]
+// async fn main() -> std::io::Result<()> {
+//     bootstrap::app::start().await
+// }
