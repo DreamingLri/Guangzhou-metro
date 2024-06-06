@@ -188,11 +188,9 @@ impl Map {
             len += link.cost;
         }
 
-        segments.push(new_segment(
-            &mut stations,
-            links.last().unwrap(),
-            segment_len,
-        ));
+        if let Some(last_link) = links.last() {
+            segments.push(new_segment(&mut stations, last_link, segment_len));
+        }
         Some(Path { segments, len })
     }
 }
