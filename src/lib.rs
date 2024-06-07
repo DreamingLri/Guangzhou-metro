@@ -253,3 +253,7 @@ fn read_map_from_json() -> Map {
     }
     map
 }
+
+pub fn get_stations() -> Vec<String> {
+    get_map().map.keys().cloned().collect()
+}
