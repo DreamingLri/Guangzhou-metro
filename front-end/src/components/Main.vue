@@ -1,5 +1,36 @@
 <script setup lang="ts">
+import {onMounted, reactive, ref} from "vue"
+import request from "../utills/request.ts";
 
+const stations = ref({})
+
+interface Request{
+  start: string,
+  end: string,
+}
+
+const data: Request = reactive({
+  start: '',
+  end: ''
+});
+
+function getLine(){
+  console.log(data)
+  request.post("getLine", data).then(res=>{
+    console.log(res)
+  })
+}
+
+function getStations(){
+  request.get("getStation").then((res)=>{
+    stations.value = res
+    console.log(stations.value)
+  })
+}
+
+onMounted(()=>{
+  getStations()
+})
 </script>
 
 <template>
@@ -24,7 +55,13 @@
               />
             </div>
           </el-aside>
-          <el-main>Main</el-main>
+          <el-main>
+            <div>
+              <el-input v-model="data.start" style="width: 240px" placeholder="Please input" />
+              <el-input v-model="data.end" style="width: 240px" placeholder="Please input" />
+              <el-button @click="getLine" type="primary">Primary</el-button>
+            </div>
+          </el-main>
         </el-container>
       </el-scrollbar>
 
