@@ -10,6 +10,7 @@ use std::{
     sync::OnceLock,
 };
 
+use indexmap::IndexMap;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -69,10 +70,19 @@ pub struct PathSegment<'a> {
 
 #[derive(Debug, Default)]
 pub struct Map {
+    line_stations: IndexMap<String, Vec<String>>,
     map: HashMap<String, Vec<Link>>,
 }
 
 impl Map {
+    pub fn add_station(&mut self, station: String, line: String) {
+        self.line_stations.entry(line).or_default().push(station);
+    }
+
+    pub fn line_stations(&self) -> &IndexMap<String, Vec<String>> {
+        &self.line_stations
+    }
+
     pub fn add_link(&mut self, station: String, link: Link) {
         self.map.entry(station).or_default().push(link);
     }
@@ -205,30 +215,34 @@ fn read_map_from_json() -> Map {
     let rdr = BufReader::new(file);
     let val: Value = serde_json::from_reader(rdr).expect("failed to parse JSON");
 
-    let Value::Object(obj) = val else {
+    let Value::Array(lines) = val else {
         panic!("not an object");
     };
 
     let mut map = Map::default();
 
-    for (line, arr) in obj {
-        let Value::Array(arr) = arr else {
+    for line in lines {
+        let Value::String(name) = &line["name"] else {
+            panic!("not a string");
+        };
+        let Value::Array(arr) = &line["data"] else {
             panic!("not an array");
         };
         if arr.len() % 2 != 1 {
             panic!("even array length");
         }
-
         let (Value::String(start), Value::String(end)) = (&arr[0], arr.last().unwrap()) else {
             panic!("type mismatch");
         };
 
+        map.add_station(start.clone(), name.clone());
         for i in 0..arr.len() / 2 {
             let [Value::String(fst), Value::Number(cost), Value::String(snd)] =
                 &arr[i * 2..i * 2 + 3]
             else {
                 panic!("type mismatch");
             };
+            map.add_station(snd.clone(), name.clone());
 
             let cost = cost.as_f64().expect("not a f64");
             map.add_link(
@@ -236,16 +250,16 @@ fn read_map_from_json() -> Map {
                 Link {
                     next: snd.clone(),
                     cost,
-                    line: line.clone(),
+                    line: name.clone(),
                     direction: end.clone(),
                 },
             );
             map.add_link(
                 snd.clone(),
                 Link {
-                    next: fst.into(),
+                    next: fst.clone(),
                     cost,
-                    line: line.clone(),
+                    line: name.clone(),
                     direction: start.clone(),
                 },
             );
