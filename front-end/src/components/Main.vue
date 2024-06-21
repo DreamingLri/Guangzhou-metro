@@ -2,9 +2,10 @@
 import {onMounted, reactive, ref} from "vue"
 import request from "../utills/request.ts";
 import Subway from "./Subway.vue";
+import {ElMessage} from "element-plus";
 
 const line_list = ref()
-const line = ref({})
+const lines = ref()
 const map_switch = ref(true)
 
 interface Request{
@@ -22,9 +23,13 @@ function getLine(){
     start: data.start[1],
     end: data.end[1]
   }
-  request.post("getLine", message).then(res=>{
-    line.value = res.data;
-  })
+  if (JSON.stringify(message) === '{}' || !data.start || !data.end) {
+    ElMessage.warning("请选择起点站和终点站")
+  } else {
+    request.post("getLine", message).then(res=>{
+      lines.value = res.data;
+    })
+  }
 }
 
 interface Stations{
@@ -35,17 +40,17 @@ interface Stations{
 
 function getStations(){
   request.get("getStation").then((res)=>{
-    var stations = res.data
-    var temps = []
+    let stations = res.data
+    let temps = []
 
-    for(var line in stations){
-      var line_temp: Stations = {
+    for(let line in stations){
+      let line_temp: Stations = {
         value: line,
         label: line,
         children: []
       }
-      for(var station_name in stations[line]){
-        var station: Stations = {
+      for(let station_name in stations[line]){
+        let station: Stations = {
           value: stations[line][station_name],
           label: stations[line][station_name],
           children: []
@@ -57,6 +62,41 @@ function getStations(){
     line_list.value = temps
   })
 }
+
+function toHourMinute(minutes: number){
+  if(Math.floor(minutes/60) === 0){
+    return (minutes % 60)+ "分钟"
+  } else {
+    return (Math.floor(minutes/60) + "小时" + (minutes%60) + "分钟" );
+  }
+}
+
+const color_table = {
+  "1号线": "rgb(246,215,72)",
+  "2号线": "rgb(42,99,173)",
+  "3号线": "rgb(242,169,59)",
+  "3号线北延线": "rgb(242,169,59)",
+  "4号线": "rgb(56,128,64)",
+  "5号线": "rgb(181,37,65)",
+  "6号线": "rgb(107,36,79)",
+  "7号线": "rgb(145,183,63)",
+  "8号线": "rgb(56,127,133)",
+  "9号线": "rgb(122,187,148)",
+  "13号线": "rgb(130,133,62)",
+  "14号线": "rgb(124,38,45)",
+  "14号线知识城支线": "rgb(124,38,45)",
+  "18号线": "rgb(44,72,157)",
+  "21号线": "rgb(13,19,51)",
+  "22号线": "rgb(167,95,46)",
+  "APM线": "rgb(82,179,222)",
+  "佛山2号线": "rgb(231,52,35)",
+  "佛山3号线": "rgb(42,99,173)",
+  "南海有轨1号线": "rgb(72,160,220)",
+  "广佛线": "rgb(189,209,66)",
+  "海珠有轨1号线": "#5eb630",
+  "黄埔有轨1号线": "#bd0000",
+}
+
 
 const props = {
   expandTrigger: 'hover' as const,
@@ -78,7 +118,7 @@ onMounted(()=>{
       </el-header>
       <el-scrollbar>
         <el-container>
-          <el-aside width="60%" style="border-right: 1px solid #ccc">
+          <el-aside width="65%" style="border-right: 1px solid #ccc">
             <div class="aside">
               <div style="height: 80px; text-align: center; display: flex; align-items: center;">
                 <div style="width: 125px"/>
@@ -108,7 +148,50 @@ onMounted(()=>{
               </div>
             </div>
             <div>
+              <div v-if="lines || false">
+                <el-card shadow="hover">
+                  <div>
+                    全程 {{toHourMinute(lines.len)}}
+                  </div>
+                  <div style="margin-top: 10px">
+                    <el-button
+                        v-for="line in lines.segments"
+                        :color="color_table[line.line as keyof typeof color_table]"
+                        style="color: white; margin-top: 10px;"
+                        round
+                    >
+                      {{line.line}}
+                    </el-button>
+                  </div>
+                </el-card>
+                <el-card style="margin-top: 10px;" shadow="hover" v-for="line in lines.segments">
+                  <div style="display: flex">
+                    <div style="width: 10px; height: auto ; border-radius: 5px; margin-right: 8px;" :style="{'background-color': color_table[line.line as keyof typeof color_table]}"/>
+                    <div style="width: 100%">
+                      <div style="margin-bottom: 5px">
+                        <div>
+                          <b>{{line.stations[0]}} 地铁站</b>
+                        </div>
+                        <div style="height: 24px; display: flex; align-items: center; margin-top: 5px">
+                          <el-button :color="color_table[line.line as keyof typeof color_table] " style="color: white" size="small">
+                            <a style="font-size: 14px">{{line.line}}</a>
+                          </el-button>
+                          <div style="height: 24px">
+                            <a style="font-size: 14px; line-height: 24px; margin-left: 5px">{{line.direction}}方向</a>
+                          </div>
+                        </div>
+                      </div>
+                      <p v-for="station in line.stations.slice(1, line.stations.length - 2)" style="height: 7px; font-size: 14px">
+                        <b>{{station}}</b>
+                      </p>
+                      <div>
+                        <b>{{line.stations[line.stations.length - 1]}} 地铁站</b>
+                      </div>
+                    </div>
+                  </div>
 
+                </el-card>
+              </div>
             </div>
           </el-main>
         </el-container>
