@@ -7,6 +7,11 @@ const routes = [
         component: () => import('../components/Main.vue')
     },
     {
+        path: '/test',
+        name: 'test',
+        component: () => import('../components/Subway.vue')
+    },
+    {
         path: '/:catchAll(.*)',
         name: 'NotFound',
         title: '404 NotFound',
