@@ -4,8 +4,9 @@ use serde::Deserialize;
 
 #[get("/getStation")]
 pub async fn get_station() -> impl Responder {
-    let stations = crate::get_stations();
-    HttpResponse::Ok().json(stations)
+    let stations = crate::get_map();
+    let line = stations.line_stations();
+    HttpResponse::Ok().json(line)
 }
 
 #[derive(Deserialize)]
