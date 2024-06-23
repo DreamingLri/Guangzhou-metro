@@ -45,6 +45,7 @@
         //点击空白, 关闭infowindow
         mySubway.event.on("subway.touch", function() {
             mySubway.clearInfoWindow();
+            mySubway.clearRoute();
         });
 
         //设置起点
@@ -52,8 +53,10 @@
             mySubway.stopAnimation();
             mySubway.clearInfoWindow();
             mySubway.setStart(info.id, {});
+            localStorage.setItem("start", info.name)
+            console.log(info)
             startInfo = info;
-            route();
+            // route();
         });
 
         //设置终点
@@ -61,20 +64,21 @@
             mySubway.stopAnimation();
             mySubway.clearInfoWindow();
             mySubway.setEnd(info.id, {});
+            localStorage.setItem("end", info.name)
             endInfo = info;
-            route();
+            // route();
         });
 
         //路线规划
-        var startInfo = {},
-            endInfo = {};
-        function route() {
-            if (startInfo.id && endInfo.id) {
-                mySubway.route(startInfo.id, endInfo.id, {});
-                startInfo = {};
-                endInfo = {};
-            }
-        }
+        // var startInfo = {},
+        //     endInfo = {};
+        // function route() {
+        //     if (startInfo.id && endInfo.id) {
+        //         mySubway.route(startInfo.id, endInfo.id, {});
+        //         startInfo = {};
+        //         endInfo = {};
+        //     }
+        // }
     };
 </script>
 </body>
