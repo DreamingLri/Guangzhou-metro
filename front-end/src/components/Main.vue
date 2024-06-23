@@ -9,8 +9,8 @@ const lines = ref()
 const map_switch = ref(true)
 
 interface Request{
-  start: string,
-  end: string,
+  start: string | null,
+  end: string | null,
 }
 
 const data: Request = reactive({
@@ -19,11 +19,22 @@ const data: Request = reactive({
 });
 
 function getLine(){
-  let message = {
-    start: data.start[1],
-    end: data.end[1]
+  let message: Request = {
+    start: '',
+    end: '',
   }
-  if (JSON.stringify(message) === '{}' || !data.start || !data.end) {
+  if(localStorage.getItem("start") && localStorage.getItem("end")){
+    message.start = localStorage.getItem("start")
+    message.end = localStorage.getItem("end")
+    localStorage.clear()
+    console.log(message)
+  } else {
+    message.start = data.start[1]
+    message.end = data.end[1]
+  }
+  // console.log(localStorage.getItem("start") + " " + localStorage.getItem("end"))
+
+  if (JSON.stringify(message) === '{}' || !message.start || !message.end) {
     ElMessage.warning("请选择起点站和终点站")
   } else {
     request.post("getLine", message).then(res=>{
@@ -133,15 +144,15 @@ onMounted(()=>{
                   <el-switch style="margin-right: 10px" v-model="map_switch" />
                 </div>
               </div>
-              <a-image v-if="!map_switch" src="../../public/guangzhou metro.png"/>
-              <Subway v-if="map_switch" style="height: auto"/>
+<!--              <a-image v-if="!map_switch" src="../../public/guangzhou metro.png"/>-->
+              <Subway style="height: auto" :map_switch="map_switch"/>
             </div>
           </el-aside>
           <el-main>
             <div style="height: 100px">
               <div style="display: flex; justify-content: center">
-                <el-cascader style="width: 100%; margin-right: 20px" v-model="data.start" :options="line_list" :props="props" placeholder="请选择或搜索起点站" filterable clearable/>
-                <el-cascader style="width: 100%" v-model="data.end" :options="line_list" :props="props" placeholder="请选择或搜索终点站" filterable clearable/>
+                <el-cascader style="width: 100%; margin-right: 20px" v-model="data.start" :options="line_list" :props="props" placeholder="请选择或搜索起点站" filterable clearable :show-all-levels="false"/>
+                <el-cascader style="width: 100%" v-model="data.end" :options="line_list" :props="props" placeholder="请选择或搜索终点站" filterable clearable :show-all-levels="false"/>
               </div>
               <div style="margin-top: 20px; display: flex; justify-content: center">
                 <el-button style="width: 100%" @click="getLine" type="primary">开始导航</el-button>
@@ -181,7 +192,7 @@ onMounted(()=>{
                           </div>
                         </div>
                       </div>
-                      <p v-for="station in line.stations.slice(1, line.stations.length - 2)" style="height: 7px; font-size: 14px">
+                      <p v-for="station in line.stations.slice(1, line.stations.length - 1)" style="height: 7px; font-size: 14px">
                         <b>{{station}}</b>
                       </p>
                       <div>
@@ -189,7 +200,6 @@ onMounted(()=>{
                       </div>
                     </div>
                   </div>
-
                 </el-card>
               </div>
             </div>
