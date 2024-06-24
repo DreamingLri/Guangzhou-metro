@@ -81,8 +81,15 @@ function toHourMinute(minutes: number){
   if(Math.floor(minutes/60) === 0){
     return (minutes % 60)+ "分钟"
   } else {
-    return (Math.floor(minutes/60) + "小时" + (minutes%60) + "分钟" );
+    return (Math.floor(minutes / 60) + "小时" + (minutes % 60) + "分钟" );
   }
+}
+
+function getArriveTime(minutes: number){
+  let date = new Date();
+  let time_now = date.getHours() * 60 + date.getMinutes();
+  let time_arrive = time_now + minutes
+  return (Math.floor(time_arrive / 60) + ":" + ((time_arrive % 60) < 10 ? "0" + (time_arrive % 60) : (time_arrive % 60)));
 }
 
 const color_table = {
@@ -166,7 +173,7 @@ onMounted(()=>{
               <div v-if="lines || false">
                 <el-card shadow="hover">
                   <div>
-                    全程 {{toHourMinute(lines.len)}}
+                    全程 {{toHourMinute(lines.len)}} 预计{{getArriveTime(lines.len)}}到达
                   </div>
                   <div style="margin-top: 10px">
                     <el-button
