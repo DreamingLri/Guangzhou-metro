@@ -21,7 +21,7 @@ struct SubPath<'a> {
 
 impl<'a> PartialEq for SubPath<'a> {
     fn eq(&self, other: &Self) -> bool {
-        self.len == other.len
+        self.cmp(other) == Ordering::Equal
     }
 }
 
