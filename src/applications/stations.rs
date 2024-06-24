@@ -1,7 +1,6 @@
 use actix_web::{get, post, web, HttpResponse, Responder};
 use serde::Deserialize;
 
-
 #[get("/getStation")]
 pub async fn get_station() -> impl Responder {
     let stations = crate::get_map();
