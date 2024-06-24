@@ -29,8 +29,10 @@ function getLine(){
     localStorage.clear()
     console.log(message)
   } else {
-    message.start = data.start[1]
-    message.end = data.end[1]
+    if(data.start && data.end){
+      message.start = data.start[1]
+      message.end = data.end[1]
+    }
   }
   // console.log(localStorage.getItem("start") + " " + localStorage.getItem("end"))
 
@@ -70,6 +72,7 @@ function getStations(){
       }
       temps.push(line_temp)
     }
+    temps = temps.filter((item) => item.value !== '换乘')
     line_list.value = temps
   })
 }
@@ -106,6 +109,7 @@ const color_table = {
   "广佛线": "rgb(189,209,66)",
   "海珠有轨1号线": "#5eb630",
   "黄埔有轨1号线": "#bd0000",
+  "换乘": "rgb(153,160,169)"
 }
 
 
@@ -171,24 +175,29 @@ onMounted(()=>{
                         style="color: white; margin-top: 10px;"
                         round
                     >
-                      {{line.line}}
+                      {{line.line !== '换乘' ? line.line : '步行出站换乘'}}
                     </el-button>
                   </div>
                 </el-card>
-                <el-card style="margin-top: 10px;" shadow="hover" v-for="line in lines.segments">
+                <el-card style="margin-top: 10px" shadow="hover" v-for="line in lines.segments">
                   <div style="display: flex">
                     <div style="width: 10px; height: auto ; border-radius: 5px; margin-right: 8px;" :style="{'background-color': color_table[line.line as keyof typeof color_table]}"/>
                     <div style="width: 100%">
                       <div style="margin-bottom: 5px">
-                        <div>
-                          <b>{{line.stations[0]}} 地铁站</b>
+                        <div style="display: flex">
+                          <div>
+                            <b>{{line.stations[0]}} 地铁站</b>
+                          </div>
+                          <div style="height: 24px">
+                            <a style="font-size: 14px; line-height: 24px; margin-left: 5px">用时约 {{line.len}} 分钟</a>
+                          </div>
                         </div>
                         <div style="height: 24px; display: flex; align-items: center; margin-top: 5px">
                           <el-button :color="color_table[line.line as keyof typeof color_table] " style="color: white" size="small">
                             <a style="font-size: 14px">{{line.line}}</a>
                           </el-button>
                           <div style="height: 24px">
-                            <a style="font-size: 14px; line-height: 24px; margin-left: 5px">{{line.direction}}方向</a>
+                            <a v-if="line.line !== '换乘'" style="font-size: 14px; line-height: 24px; margin-left: 5px">{{line.direction}}方向</a>
                           </div>
                         </div>
                       </div>
