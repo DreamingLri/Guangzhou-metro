@@ -3,10 +3,10 @@ pub mod bootstrap;
 
 use std::{
     cmp::Ordering,
-    collections::{BinaryHeap, HashMap},
+    collections::{hash_map::Entry, BinaryHeap, HashMap},
     fs::File,
     io::BufReader,
-    mem,
+    iter, mem,
     sync::OnceLock,
 };
 
@@ -39,6 +39,7 @@ impl<'a> Ord for SubPath<'a> {
     }
 }
 
+#[derive(Clone, Copy)]
 struct SubPathProp<'a> {
     prev_of_dest: &'a str,
     len: f64,
@@ -96,15 +97,15 @@ impl Map {
         }
 
         let mut sub_paths = BinaryHeap::new();
-        let mut sub_path_props = HashMap::new();
+        let mut sub_path_props_by_dest = HashMap::new();
 
         for link in &self.map[start] {
             sub_paths.push(SubPath {
                 dest: &link.next,
                 len: link.cost,
             });
-            sub_path_props.insert(
-                link.next.as_str(),
+            sub_path_props_by_dest.insert(
+                &link.next[..],
                 SubPathProp {
                     prev_of_dest: start,
                     len: link.cost,
@@ -115,92 +116,73 @@ impl Map {
         }
 
         while let Some(sub_path) = sub_paths.pop() {
-            let prop = sub_path_props.get_mut(sub_path.dest).unwrap();
+            let prop = sub_path_props_by_dest.get_mut(sub_path.dest).unwrap();
             if prop.is_min {
                 continue;
             }
             prop.is_min = true;
 
             if sub_path.dest == dest {
-                let mut prop = &sub_path_props[sub_path.dest];
-                let mut res = vec![];
+                let mut prop = &sub_path_props_by_dest[sub_path.dest];
+                let mut path = vec![];
                 loop {
-                    res.push(prop.last_link);
+                    path.push(prop.last_link);
                     if prop.prev_of_dest == start {
-                        res.reverse();
-                        return Some(res);
+                        path.reverse();
+                        return Some(path);
                     }
-                    prop = &sub_path_props[prop.prev_of_dest];
+                    prop = &sub_path_props_by_dest[prop.prev_of_dest];
                 }
             }
 
             for link in &self.map[sub_path.dest] {
-                let next = link.next.as_str();
-                let alt_len = sub_path.len + link.cost;
+                let next = &link.next[..];
+                let alt_prop = SubPathProp {
+                    prev_of_dest: sub_path.dest,
+                    len: sub_path.len + link.cost,
+                    last_link: link,
+                    is_min: false,
+                };
 
-                if sub_path_props
-                    .get(next)
-                    .is_some_and(|prop| alt_len >= prop.len)
-                {
-                    continue;
+                match sub_path_props_by_dest.entry(next) {
+                    Entry::Occupied(entry) => {
+                        let prop = entry.into_mut();
+                        if alt_prop.len < prop.len {
+                            assert!(!prop.is_min);
+                            *prop = alt_prop;
+                        } else {
+                            continue;
+                        }
+                    }
+                    Entry::Vacant(entry) => {
+                        entry.insert(alt_prop);
+                    }
                 }
 
-                sub_path_props.insert(
-                    next,
-                    SubPathProp {
-                        prev_of_dest: sub_path.dest,
-                        len: alt_len,
-                        last_link: link,
-                        is_min: false,
-                    },
-                );
                 sub_paths.push(SubPath {
                     dest: next,
-                    len: alt_len,
+                    len: alt_prop.len,
                 });
             }
         }
         None
     }
 
-    pub fn find_path<'a>(&'a self, start: &'a str, dest: &str) -> Option<Path<'a>> {
-        fn new_segment<'a>(
-            stations: &mut Vec<&'a str>,
-            last_link: &'a Link,
-            segment_len: f64,
-        ) -> PathSegment<'a> {
-            let last_station = *stations.last().unwrap();
-            PathSegment {
-                line: &last_link.line,
-                direction: &last_link.direction,
-                stations: mem::replace(stations, vec![last_station]),
-                len: segment_len,
-            }
-        }
+    pub fn find_path<'a>(&'a self, mut start: &'a str, dest: &str) -> Option<Path<'a>> {
+        let segments: Vec<_> = self
+            .find_path_raw(start, dest)?
+            .chunk_by(|a, b| a.line == b.line)
+            .map(|links| PathSegment {
+                line: &links[0].line,
+                direction: &links[0].direction,
+                stations: iter::once(mem::replace(&mut start, &links.last().unwrap().next))
+                    .chain(links.iter().map(|link| &link.next[..]))
+                    .collect(),
+                len: links.iter().map(|link| link.cost).sum(),
+            })
+            .collect();
+        let len = segments.iter().map(|seg| seg.len).sum();
 
-        let links = self.find_path_raw(start, dest)?;
-
-        let mut segments = vec![];
-        let mut stations = vec![start];
-
-        let mut segment_len = 0.0;
-        let mut len = 0.0;
-
-        for i in 0..links.len() {
-            let link = links[i];
-            if i != 0 && link.line != links[i - 1].line {
-                segments.push(new_segment(&mut stations, &links[i - 1], segment_len));
-                segment_len = 0.0;
-            }
-
-            stations.push(&link.next);
-            segment_len += link.cost;
-            len += link.cost;
-        }
-
-        if let Some(last_link) = links.last() {
-            segments.push(new_segment(&mut stations, last_link, segment_len));
-        }
         Some(Path { segments, len })
     }
 }
