@@ -28,6 +28,8 @@ Rust语言与内存安全设计大作业
 
 上一次写前端还是在上次，前端水平属于幼教级别，边学边写了属于是，~~再写前端我就是狗~~
 
+感谢[Scallop Ye](https://github.com/yescallop)对本项目的极大贡献
+
 如果您发现了任何bug，可以提交issue或者发送[邮件](mailto:dreaminglri@outlook.com)
 
 
