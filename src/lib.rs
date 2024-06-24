@@ -147,12 +147,10 @@ impl Map {
                 match sub_path_props_by_dest.entry(next) {
                     Entry::Occupied(entry) => {
                         let prop = entry.into_mut();
-                        if alt_prop.len < prop.len {
-                            assert!(!prop.is_min);
-                            *prop = alt_prop;
-                        } else {
+                        if prop.is_min || alt_prop.len >= prop.len {
                             continue;
                         }
+                        *prop = alt_prop;
                     }
                     Entry::Vacant(entry) => {
                         entry.insert(alt_prop);
