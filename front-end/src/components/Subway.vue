@@ -7,8 +7,8 @@ const src_foshan = ref('')
 
 onMounted(()=>{
   showSessionId.value = window.location.search
-  src_guangzhou.value = '../../../public/metro_guangzhou.html'
-  src_foshan.value = '../../../public/metro_foshan.html'
+  src_guangzhou.value = '/metro_guangzhou.html'
+  src_foshan.value = '/metro_foshan.html'
 })
 
 defineProps({
