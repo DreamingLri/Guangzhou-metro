@@ -89,7 +89,14 @@ function getArriveTime(minutes: number){
   let date = new Date();
   let time_now = date.getHours() * 60 + date.getMinutes();
   let time_arrive = time_now + minutes
-  return (Math.floor(time_arrive / 60) + ":" + ((time_arrive % 60) < 10 ? "0" + (time_arrive % 60) : (time_arrive % 60)));
+  if(time_arrive > 23 * 60 + 30){
+    ElMessage.warning("列车不在此时段运营，请注意时间")
+  }
+  if(Math.floor(time_arrive / 60) > 24){
+    return ("明日" + Math.floor(time_arrive /60 - 24)  + ":" + ((time_arrive % 60) < 10 ? "0" + (time_arrive % 60) : (time_arrive % 60)))
+  } else {
+    return (Math.floor(time_arrive / 60) + ":" + ((time_arrive % 60) < 10 ? "0" + (time_arrive % 60) : (time_arrive % 60)));
+  }
 }
 
 const color_table = {
