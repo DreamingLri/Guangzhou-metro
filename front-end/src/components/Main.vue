@@ -89,7 +89,7 @@ function getArriveTime(minutes: number){
   let date = new Date();
   let time_now = date.getHours() * 60 + date.getMinutes();
   let time_arrive = time_now + minutes
-  if(time_arrive > 23 * 60 + 30 || (time_arrive % 24 * 60) < 6 * 60){
+  if(time_arrive > 23 * 60 + 30 || (time_arrive % (24 * 60)) < 6 * 60){
     ElMessage.warning("列车不在此时段运营，请注意时间")
   }
   if(Math.floor(time_arrive / 60) > 24){
