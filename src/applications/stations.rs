@@ -14,7 +14,7 @@ struct LineRequest {
     end: String,
 }
 
-#[post("getLine")]
+#[post("/getLine")]
 pub async fn get_line(info: web::Json<LineRequest>) -> impl Responder {
     let map = crate::get_map();
     let path = map.find_path(&info.start, &info.end);
